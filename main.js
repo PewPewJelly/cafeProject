@@ -1,8 +1,9 @@
 /* =============================================
-   바이브 펫 호텔 예약서 - 메인 자바스크립트
+   바이브 펫 호텔 예약서 — 메인 자바스크립트
+   Spotify Design System 적용
    ============================================= */
 
-// --- DOM 요소 가져오기 ---
+// ─── DOM 요소 가져오기 ───
 const form = document.getElementById('reservationForm');
 const ownerNameInput = document.getElementById('ownerName');
 const phoneInput = document.getElementById('phone');
@@ -15,13 +16,14 @@ const checkOutInput = document.getElementById('checkOut');
 const nightsDisplay = document.getElementById('nights');
 const requestTextarea = document.getElementById('request');
 const estimatedPriceDiv = document.getElementById('estimatedPrice');
+const priceValueSpan = document.getElementById('priceValue');
 const submitBtn = document.getElementById('submitBtn');
 const excelBtn = document.getElementById('excelBtn');
 const resetBtn = document.getElementById('resetBtn');
 const confirmMessage = document.getElementById('confirmMessage');
 const reservationCountDiv = document.getElementById('reservationCount');
 
-// --- localStorage에서 기존 예약 목록 불러오기 ---
+// ─── localStorage에서 기존 예약 목록 불러오기 ───
 let reservations = JSON.parse(localStorage.getItem('petHotelReservations')) || [];
 
 // 페이지 로드 시 저장된 예약 건수 표시
@@ -77,16 +79,16 @@ function calculatePrice() {
     // 4) 숙박 일수 계산
     const nights = calculateNights();
 
-    // 5) 총 금액 계산 (숙박 일수가 0이면 1박 기준으로 미리보기)
+    // 5) 총 금액 계산 (숙박 일수 0이면 1박 기준 미리보기)
     const totalPerNight = petTypePrice + roomGradePrice + servicePrice;
     const displayNights = nights > 0 ? nights : 1;
     const total = totalPerNight * displayNights;
 
     // 6) 화면에 천 단위 콤마로 표시
     if (nights > 0) {
-        estimatedPriceDiv.textContent = `예상 금액: ${total.toLocaleString()}원 (${nights}박)`;
+        priceValueSpan.textContent = `${total.toLocaleString()}원 (${nights}박)`;
     } else {
-        estimatedPriceDiv.textContent = `예상 금액: ${total.toLocaleString()}원`;
+        priceValueSpan.textContent = `${total.toLocaleString()}원`;
     }
 
     return total;
@@ -94,7 +96,7 @@ function calculatePrice() {
 
 
 /* =============================================
-   선택된 객실 등급 이름 반환 함수
+   선택된 객실 등급 이름 반환
    ============================================= */
 function getSelectedRoomGrade() {
     const gradeMap = {
@@ -111,7 +113,7 @@ function getSelectedRoomGrade() {
 
 
 /* =============================================
-   선택된 추가 서비스 이름 배열 반환 함수
+   선택된 추가 서비스 이름 배열 반환
    ============================================= */
 function getSelectedServices() {
     const services = [];
@@ -125,7 +127,7 @@ function getSelectedServices() {
 
 
 /* =============================================
-   반려동물 종류 이름 반환 함수
+   반려동물 종류 이름 반환
    - 옵션 텍스트에서 종류명만 추출
    ============================================= */
 function getPetTypeName() {
@@ -137,7 +139,7 @@ function getPetTypeName() {
 
 
 /* =============================================
-   유효성 검사 함수
+   유효성 검사
    - 필수 항목 누락 시 알림 후 false 반환
    ============================================= */
 function validate() {
@@ -169,11 +171,12 @@ function validate() {
 
 
 /* =============================================
-   저장된 예약 건수 업데이트 함수
+   저장된 예약 건수 업데이트
    ============================================= */
 function updateReservationCount() {
     if (reservations.length > 0) {
-        reservationCountDiv.textContent = `📋 현재 저장된 예약: ${reservations.length}건 (엑셀 저장 버튼으로 다운로드)`;
+        reservationCountDiv.textContent =
+            `📋 저장된 예약 ${reservations.length}건 — 엑셀 저장 버튼으로 다운로드`;
     } else {
         reservationCountDiv.textContent = '';
     }
@@ -181,11 +184,10 @@ function updateReservationCount() {
 
 
 /* =============================================
-   예약하기 버튼 클릭 이벤트
+   예약하기 버튼 클릭
    - 유효성 검사 → 예약 정보 저장 → 확인 메시지 표시
    ============================================= */
 submitBtn.addEventListener('click', function() {
-    // 유효성 검사
     if (!validate()) return;
 
     const total = calculatePrice();
@@ -216,7 +218,11 @@ submitBtn.addEventListener('click', function() {
     updateReservationCount();
 
     // 확인 메시지 생성 및 표시
-    const message = `${reservation['보호자 이름']}님의 반려동물 '${reservation['반려동물 이름']}' (${reservation['종류']}), ${reservation['등급']} 객실${serviceText} ${nights}박, 총 ${total.toLocaleString()}원 예약이 접수되었습니다! 🎉`;
+    const message =
+        `${reservation['보호자 이름']}님의 반려동물 '${reservation['반려동물 이름']}' ` +
+        `(${reservation['종류']}), ${reservation['등급']} 객실${serviceText} ` +
+        `${nights}박, 총 ${total.toLocaleString()}원 예약이 접수되었습니다! 🎉`;
+
     confirmMessage.textContent = message;
     confirmMessage.style.display = 'block';
 
@@ -226,9 +232,10 @@ submitBtn.addEventListener('click', function() {
 
 
 /* =============================================
-   엑셀 저장 버튼 클릭 이벤트
+   엑셀 저장 버튼 클릭
    - SheetJS(xlsx) 라이브러리로 .xlsx 파일 생성 및 다운로드
-   - 열(columns): 보호자 이름, 반려동물 이름, 종류, 등급, 추가 서비스, 체크인, 체크아웃, 숙박 일수, 총 금액, 요청사항
+   - 열(columns): 보호자 이름, 반려동물 이름, 종류, 등급, 추가 서비스,
+                   체크인, 체크아웃, 숙박 일수, 총 금액, 요청사항
    - 행(rows): 예약 정보 순서대로 누적
    ============================================= */
 excelBtn.addEventListener('click', function() {
@@ -260,19 +267,23 @@ excelBtn.addEventListener('click', function() {
         { wch: 30 }   // 요청사항
     ];
 
-    // 오늘 날짜를 파일명에 포함 (예: 바이브펫호텔_예약목록_2026-09-22.xlsx)
+    // 오늘 날짜를 파일명에 포함
     const today = new Date().toISOString().slice(0, 10);
     const fileName = `바이브펫호텔_예약목록_${today}.xlsx`;
 
     // .xlsx 파일 다운로드
     XLSX.writeFile(workbook, fileName);
 
-    alert(`✅ 엑셀 파일이 다운로드되었습니다!\n파일명: ${fileName}\n총 ${reservations.length}건의 예약 정보가 저장되었습니다.`);
+    alert(
+        `✅ 엑셀 파일이 다운로드되었습니다!\n` +
+        `파일명: ${fileName}\n` +
+        `총 ${reservations.length}건의 예약 정보가 저장되었습니다.`
+    );
 });
 
 
 /* =============================================
-   다시 작성 버튼 클릭 이벤트
+   다시 작성 버튼 클릭
    - 모든 입력 필드 초기화
    - 예상 금액 초기화
    - 확인 메시지 숨기기
@@ -288,19 +299,19 @@ resetBtn.addEventListener('click', function() {
     nightsDisplay.value = '0박';
 
     // 예상 금액 초기화
-    estimatedPriceDiv.textContent = '예상 금액: 0원';
+    priceValueSpan.textContent = '0원';
 
     // 확인 메시지 숨기기
     confirmMessage.style.display = 'none';
 
-    // 금액 재계산 (0원으로 리셋)
+    // 금액 재계산
     calculatePrice();
 });
 
 
 /* =============================================
    실시간 금액 계산 이벤트 리스너 등록
-   - 음료 종류, 객실 등급, 추가 서비스, 날짜 변경 시 자동 재계산
+   - 종류, 등급, 서비스, 날짜 변경 시 자동 재계산
    ============================================= */
 petTypeSelect.addEventListener('change', calculatePrice);
 
@@ -320,4 +331,3 @@ checkOutInput.addEventListener('change', calculatePrice);
    페이지 로드 시 초기 금액 계산
    ============================================= */
 calculatePrice();
-
